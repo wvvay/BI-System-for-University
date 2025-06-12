@@ -1,0 +1,8 @@
+- name: Deploy app
+  hosts: servers
+  become: yes
+  roles:
+    - ./ansible/roles/docker
+    - ./ansible/roles/app
+
+

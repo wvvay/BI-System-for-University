@@ -1,0 +1,21 @@
+---
+stages:
+  - build
+  - test
+  - release
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: "registry.gitlab.com"
+  PATH_PROJECT: "wvvay/bi-system"
+  DOCKER_IMAGE_BACKEND_TEST: "$DOCKER_REGISTRY/$PATH_PROJECT/backend:test"
+  DOCKER_IMAGE_FRONTEND_TEST: "$DOCKER_REGISTRY/$PATH_PROJECT/frontend:test"
+  DOCKER_IMAGE_BACKEND: "$DOCKER_REGISTRY/$PATH_PROJECT/backend:latest"
+  DOCKER_IMAGE_FRONTEND: "$DOCKER_REGISTRY/$PATH_PROJECT/frontend:latest"
+
+before_script:
+    - echo "Логин в реестр..."
+    - echo "$DOCKER_TOKEN" | docker login $DOCKER_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+
+include:
+  - local: 'workflows/.gitlab-ci.yml'

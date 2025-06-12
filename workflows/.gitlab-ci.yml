@@ -1,0 +1,102 @@
+---
+build-job:
+  stage: build
+  #  tag: build
+  script:
+    - echo "Сборка образов..."
+    - docker build -t $DOCKER_IMAGE_BACKEND_TEST backend/Bi-system
+    - docker build -t $DOCKER_IMAGE_FRONTEND_TEST frontend/Bi-system
+    - echo "Пуш тестовых образов..."
+    - docker push $DOCKER_IMAGE_BACKEND_TEST
+    - docker push $DOCKER_IMAGE_FRONTEND_TEST
+
+test-backend-job:
+  stage: test
+  #  tag: test
+  script:
+    - echo "UnitTest Backend"
+  needs:
+    - build-job
+
+test-frontend-job:
+  stage: test
+  #  tag: test
+  script:
+    - echo "UnitTest Frontend"
+  needs:
+    - build-job
+
+release-image:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  script:
+    - echo "Присваивание стабильных тегов..."
+    - docker pull $DOCKER_IMAGE_BACKEND_TEST
+    - docker pull $DOCKER_IMAGE_FRONTEND_TEST
+    - docker tag $DOCKER_IMAGE_BACKEND_TEST $DOCKER_IMAGE_BACKEND
+    - docker tag $DOCKER_IMAGE_FRONTEND_TEST $DOCKER_IMAGE_FRONTEND
+    - echo "Пуш стабильных образов..."
+    - docker push $DOCKER_IMAGE_BACKEND
+    - docker push $DOCKER_IMAGE_FRONTEND
+  needs:
+    - test-backend-job
+    - test-frontend-job
+
+deploy-staging:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+  #  tag: stage
+  before_script:
+    - mkdir -p config/nginx/ssl
+    - echo "$SSL_CERTIFICATE" > config/nginx/ssl/certificate.crt
+    - echo "$SSL_PRIVATE_KEY" > config/nginx/ssl/certificate.key
+    - echo "$SSL_CA_CERTIFICATE" > config/nginx/ssl/certificate_ca.crt
+    - chmod 600 config/nginx/ssl/certificate.key
+  script:
+    - echo "Удаляем старые компосники..."
+    - docker compose down -v
+    - echo "Разворачиваем на staging..."
+    - docker compose -f docker-compose.yml up -d --build
+  needs:
+    - release-image
+
+#deploy-prod:
+#  stage: deploy
+#  image: python:3.12
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == "dev"
+#  #  tag: prod
+#  script:
+#    - pip install --no-cache-dir ansible
+#    - echo "Разворачиваем на production..."
+#    - ansible-playbook -i ansible/Inventories/prod.ini ansible/playbooks/deploy.yml
+#  before_script: []
+#  needs:
+#    - deploy-staging
+#  environment:
+#    name: production
+#  when: manual
+
+deploy-prod:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  #  tag: prod
+  before_script:
+    - mkdir -p config/nginx/ssl
+    - echo "$SSL_CERTIFICATE" > config/nginx/ssl/certificate.crt
+    - echo "$SSL_PRIVATE_KEY" > config/nginx/ssl/certificate.key
+    - echo "$SSL_CA_CERTIFICATE" > config/nginx/ssl/certificate_ca.crt
+    - chmod 600 config/nginx/ssl/certificate.key
+  script:
+    - echo "Удаляем старые компосники..."
+    - docker compose down -v
+    - echo "Разворачиваем на staging..."
+    - docker compose -f docker-compose.yml up -d --build
+  needs:
+    - build-job
+  when: manual
+
+

@@ -1,0 +1,17 @@
+---
+- name: Login Registry
+  shell: |
+    echo "$DOCKER_TOKEN" | docker login $DOCKER_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  environment:
+    DOCKER_TOKEN: "{{ lookup('env', 'DOCKER_TOKEN') }}"
+    DOCKER_REGISTRY: "{{ lookup('env', 'DOCKER_REGISTRY') }}"
+    CI_REGISTRY_USER: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
+
+- name: Docker Compose down
+  command: "docker compose -f bi-system-do-2/docker-compose.yml down"
+
+- name: Build app
+  command: "docker compose -f bi-system-do-2/docker-compose.yml build"
+
+- name: Run app on Ubuntu in docker compose
+  command: "docker compose -f bi-system-do-2/docker-compose.yml up -d"

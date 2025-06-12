@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+@layer components {
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/30 shadow-lg border border-white/20;
+  }
+  
+  .glass-button {
+    @apply px-6 py-3 rounded-full font-medium transition-all duration-300 
+           hover:scale-105 hover:shadow-lg active:scale-95
+           backdrop-blur-md bg-white/30 border border-white/20
+           hover:bg-white/40;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-xl;
+  }
+} 

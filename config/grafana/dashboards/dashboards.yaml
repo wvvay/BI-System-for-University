@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: 'Импортированные'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      updateIntervalSeconds: 10
+      allowUiUpdates: true
